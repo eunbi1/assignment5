@@ -1,0 +1,981 @@
+{
+ "nbformat": 4,
+ "nbformat_minor": 0,
+ "metadata": {
+  "colab": {
+   "name": "20225228_Eunbiyoon_Toolkit 5-2.ipynb",
+   "provenance": [],
+   "collapsed_sections": []
+  },
+  "kernelspec": {
+   "name": "python3",
+   "display_name": "Python 3"
+  },
+  "language_info": {
+   "name": "python"
+  },
+  "accelerator": "GPU"
+ },
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "source": [],
+   "metadata": {
+    "id": "KB65JmSN7Wj7",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Download dataset"
+   ],
+   "metadata": {
+    "id": "oADkiNxj5uX5",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "id": "unFWSm4u2oCc",
+    "outputId": "2dacc88f-5fd9-4d23-8c95-4b36a2cb512e",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "reviews.txt         100%[===================>]  32.12M   866KB/s    in 48s     \r\n",
+      "\r\n",
+      "2022-06-12 07:47:25 (682 KB/s) - ‘reviews.txt’ saved [33678267/33678267]\r\n",
+      "\r\n",
+      "mkdir: data: File exists\r\n",
+      "--2022-06-12 07:47:25--  https://github.com/agungsantoso/deep-learning-v2-pytorch/raw/master/sentiment-rnn/data/labels.txt\r\n",
+      "Resolving github.com (github.com)... 15.164.81.167\r\n",
+      "Connecting to github.com (github.com)|15.164.81.167|:443... connected.\r\n",
+      "HTTP request sent, awaiting response... 302 Found\r\n",
+      "Location: https://raw.githubusercontent.com/agungsantoso/deep-learning-v2-pytorch/master/sentiment-rnn/data/labels.txt [following]\r\n",
+      "--2022-06-12 07:47:26--  https://raw.githubusercontent.com/agungsantoso/deep-learning-v2-pytorch/master/sentiment-rnn/data/labels.txt\r\n",
+      "Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.110.133, 185.199.108.133, 185.199.109.133, ...\r\n",
+      "Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.110.133|:443... connected.\r\n",
+      "HTTP request sent, awaiting response... 200 OK\r\n",
+      "Length: 225000 (220K) [text/plain]\r\n",
+      "Saving to: ‘labels.txt’\r\n",
+      "\r\n",
+      "labels.txt          100%[===================>] 219.73K   891KB/s    in 0.2s    \r\n",
+      "\r\n",
+      "2022-06-12 07:47:26 (891 KB/s) - ‘labels.txt’ saved [225000/225000]\r\n",
+      "\r\n",
+      "--2022-06-12 07:47:26--  https://github.com/agungsantoso/deep-learning-v2-pytorch/raw/master/sentiment-rnn/data/reviews.txt\r\n",
+      "Resolving github.com (github.com)... 15.164.81.167\r\n",
+      "Connecting to github.com (github.com)|15.164.81.167|:443... connected.\r\n",
+      "HTTP request sent, awaiting response... 302 Found\r\n",
+      "Location: https://raw.githubusercontent.com/agungsantoso/deep-learning-v2-pytorch/master/sentiment-rnn/data/reviews.txt [following]\r\n",
+      "--2022-06-12 07:47:26--  https://raw.githubusercontent.com/agungsantoso/deep-learning-v2-pytorch/master/sentiment-rnn/data/reviews.txt\r\n",
+      "Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.108.133, 185.199.109.133, 185.199.110.133, ...\r\n",
+      "Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.108.133|:443... connected.\r\n",
+      "HTTP request sent, awaiting response... 200 OK\r\n",
+      "Length: 33678267 (32M) [text/plain]\r\n",
+      "Saving to: ‘reviews.txt’\r\n",
+      "\r\n",
+      "reviews.txt         100%[===================>]  32.12M   238KB/s    in 61s     \r\n",
+      "\r\n",
+      "2022-06-12 07:48:28 (536 KB/s) - ‘reviews.txt’ saved [33678267/33678267]\r\n",
+      "\r\n"
+     ]
+    }
+   ],
+   "source": [
+    "!mkdir data\n",
+    "!wget -c https://github.com/agungsantoso/deep-learning-v2-pytorch/raw/master/sentiment-rnn/data/labels.txt\n",
+    "!wget -c https://github.com/agungsantoso/deep-learning-v2-pytorch/raw/master/sentiment-rnn/data/reviews.txt\n",
+    "!mv *.txt data/"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "import numpy as np\n",
+    "\n",
+    "# read data from text files\n",
+    "with open('data/reviews.txt', 'r') as f:\n",
+    "    reviews = f.read()\n",
+    "with open('data/labels.txt', 'r') as f:\n",
+    "    labels = f.read()\n"
+   ],
+   "metadata": {
+    "id": "BUcYpos22673",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 4,
+   "outputs": []
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "print(reviews[:1000])\n",
+    "print()\n",
+    "print(labels[:30])"
+   ],
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "id": "CUohH6OE2_ul",
+    "outputId": "e5f11f37-14f8-4141-eb30-a9aff727187b",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 5,
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "bromwell high is a cartoon comedy . it ran at the same time as some other programs about school life  such as  teachers  . my   years in the teaching profession lead me to believe that bromwell high  s satire is much closer to reality than is  teachers  . the scramble to survive financially  the insightful students who can see right through their pathetic teachers  pomp  the pettiness of the whole situation  all remind me of the schools i knew and their students . when i saw the episode in which a student repeatedly tried to burn down the school  i immediately recalled . . . . . . . . . at . . . . . . . . . . high . a classic line inspector i  m here to sack one of your teachers . student welcome to bromwell high . i expect that many adults of my age think that bromwell high is far fetched . what a pity that it isn  t   \n",
+      "story of a man who has unnatural feelings for a pig . starts out with a opening scene that is a terrific example of absurd comedy . a formal orchestra audience is turn\n",
+      "\n",
+      "positive\n",
+      "negative\n",
+      "positive\n",
+      "neg\n"
+     ]
+    }
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "As data preprocessing, we remove all punctuation, then get all the text without the newlines and split it into individual words."
+   ],
+   "metadata": {
+    "id": "fY8JnDZH3NfJ",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "from string import punctuation\n",
+    "\n",
+    "print(punctuation)\n",
+    "\n",
+    "# get rid of punctuation\n",
+    "reviews = reviews.lower() # lowercase, standardize\n",
+    "all_text = ''.join([c for c in reviews if c not in punctuation])\n",
+    "\n"
+   ],
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "id": "lOBTs9l13Vi4",
+    "outputId": "a0b23ee5-8c6b-4fdb-96a8-f17a94280f6b",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 6,
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~\n"
+     ]
+    }
+   ]
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "# split by new lines and spaces\n",
+    "reviews_split = all_text.split('\\n') #\n",
+    "all_text = ' '.join(reviews_split) # 마지막으로 문단으로 떨어진 부분은 뛰어쓰기로 변환.\n",
+    "\n",
+    "# create a list of words\n",
+    "words = all_text.split()"
+   ],
+   "metadata": {
+    "id": "W-8MgC8y3dC5",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 7,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Check the first 20 words"
+   ],
+   "metadata": {
+    "id": "ch1jYbOB5_zb",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "print(words[:20])"
+   ],
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "id": "drfbHcie4Iip",
+    "outputId": "17b4b34e-79c1-4f20-f5a7-7da75d0eeeb7",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 8,
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['bromwell', 'high', 'is', 'a', 'cartoon', 'comedy', 'it', 'ran', 'at', 'the', 'same', 'time', 'as', 'some', 'other', 'programs', 'about', 'school', 'life', 'such']\n"
+     ]
+    }
+   ]
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "len(words)"
+   ],
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "id": "781M6qBoIrZp",
+    "outputId": "0a876907-7173-48b7-818d-5c587a5a8645",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 9,
+   "outputs": [
+    {
+     "data": {
+      "text/plain": "6020196"
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ]
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "labels = labels.split('\\n')\n"
+   ],
+   "metadata": {
+    "id": "uc0X1DSUIvZy",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 10,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "You need to encoding the text into integers to be used as input to your neural network model. To pad 0s to make each sequence length the same, those integers start from 1, not 0. You may build a dictionary to map words to integers. "
+   ],
+   "metadata": {
+    "id": "W_1Mf8Bu4P_Y",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "import collections \n",
+    "import torch\n",
+    "corpus = collections.Counter(words) # dictionary ('noun', counter)\n",
+    "tokens = sorted(corpus, key = corpus.get, reverse = True) #[ ('the', 33333), ...] list of tuples\n",
+    "\n",
+    "token_to_index = { token: i for i, token in enumerate(tokens, start =1 ) } # For starting index =1 \n",
+    "\n",
+    "review_to_indexs = []\n",
+    "\n",
+    "for review in reviews_split:\n",
+    "  review_to_indexs.append([ token_to_index[token] for token in review.split()])\n",
+    "# one reivew = [ noun1, noun2, noun3, ...]<-> review_to_indexs [i] =[ index1, index2, index3,... ]\n",
+    "\n",
+    "\n",
+    "def one_hot_encoding(x):\n",
+    "  ind= token_to_index[x]\n",
+    "  vector = torch.zeros((1,size))\n",
+    "  vector[0,ind]=1\n",
+    "  return vector \n",
+    "\n",
+    "# token_to_index\n",
+    "# review_to_indexs"
+   ],
+   "metadata": {
+    "id": "XkXMkFwG4P74",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 11,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Test if it works fine"
+   ],
+   "metadata": {
+    "id": "b0Xb62u24d2I",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "print(f'The size of the vocabulary is { len(token_to_index) }')\n",
+    "print(f'The reivew is translated into {review_to_indexs[0] }')\n",
+    "print(len(reviews_split))"
+   ],
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "id": "YGNTLDjzJnzk",
+    "outputId": "1c2eef61-7d7a-41ae-f5f9-d0c0abcb0d53",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 12,
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The size of the vocabulary is 74072\n",
+      "The reivew is translated into [21025, 308, 6, 3, 1050, 207, 8, 2138, 32, 1, 171, 57, 15, 49, 81, 5785, 44, 382, 110, 140, 15, 5194, 60, 154, 9, 1, 4975, 5852, 475, 71, 5, 260, 12, 21025, 308, 13, 1978, 6, 74, 2395, 5, 613, 73, 6, 5194, 1, 24103, 5, 1983, 10166, 1, 5786, 1499, 36, 51, 66, 204, 145, 67, 1199, 5194, 19869, 1, 37442, 4, 1, 221, 883, 31, 2988, 71, 4, 1, 5787, 10, 686, 2, 67, 1499, 54, 10, 216, 1, 383, 9, 62, 3, 1406, 3686, 783, 5, 3483, 180, 1, 382, 10, 1212, 13583, 32, 308, 3, 349, 341, 2913, 10, 143, 127, 5, 7690, 30, 4, 129, 5194, 1406, 2326, 5, 21025, 308, 10, 528, 12, 109, 1448, 4, 60, 543, 102, 12, 21025, 308, 6, 227, 4146, 48, 3, 2211, 12, 8, 215, 23]\n",
+      "25001\n"
+     ]
+    }
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Encoding the labels to 0 and 1"
+   ],
+   "metadata": {
+    "id": "Ebnu8xAR6Yh0",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "print(collections.Counter(labels))\n",
+    "\n",
+    "indexed_labels =[ ]\n",
+    "for i, label in enumerate(labels):\n",
+    "  if label == 'positive':\n",
+    "    indexed_labels.append(1)\n",
+    "  else : \n",
+    "    indexed_labels.append(0)\n",
+    "len(indexed_labels)"
+   ],
+   "metadata": {
+    "id": "4JCq_4uxxJes",
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "outputId": "5546c083-d741-4884-ceb8-737319b6cb95",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 13,
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Counter({'positive': 12500, 'negative': 12500, '': 1})\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": "25001"
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Check if GPU is available for training"
+   ],
+   "metadata": {
+    "id": "O5B0Se25TZvO",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "if(torch.cuda.is_available()):\n",
+    "  device = 'cuda'\n",
+    "  print('GPU is availiable')\n",
+    "else:\n",
+    "  print('No GPU available')\n",
+    "  device = 'cpu'"
+   ],
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "id": "JQretBUemjZJ",
+    "outputId": "6b08c1bd-4724-43f9-cf3c-8dfab9dcd5b7",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 14,
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "No GPU available\n"
+     ]
+    }
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "TO DO: Remove the seqeunces with 0 length."
+   ],
+   "metadata": {
+    "id": "sWwPMKqAThiw",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "import torch \n",
+    "lengths_of_reviews = collections.Counter([ len(review) for review in review_to_indexs ] )\n",
+    "# dictionary { length : { # of reviews with length}\n",
+    "print('# of revies', {len(review_to_indexs) })\n",
+    "print(lengths_of_reviews )\n",
+    "print(f'The number of zero-length reviews : {lengths_of_reviews[0]} ')\n",
+    "print(f'The maximum lenghth of reviews : { max(lengths_of_reviews) }')\n",
+    "\n",
+    "non_zero_length_index = [ i for i, review in enumerate(review_to_indexs) if len(review) != 0]\n",
+    "\n",
+    "review_to_indexs=  [review_to_indexs[i] for i in non_zero_length_index] \n",
+    "indexed_labels =  [indexed_labels[i] for i in non_zero_length_index]\n",
+    "print('# of revies after removing zero-length reviews', len(review_to_indexs))\n",
+    "\n",
+    "\n"
+   ],
+   "metadata": {
+    "id": "I_fRGih7UKLe",
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "outputId": "6fd9a6ce-1389-465b-f626-3522f941081f",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 15,
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "# of revies {25001}\n",
+      "Counter({132: 185, 130: 185, 135: 178, 129: 177, 125: 177, 128: 173, 137: 171, 133: 171, 138: 170, 136: 170, 131: 170, 124: 167, 126: 167, 127: 163, 139: 162, 134: 160, 140: 156, 119: 154, 148: 151, 121: 149, 143: 148, 122: 145, 142: 143, 144: 142, 152: 142, 118: 137, 120: 136, 123: 136, 141: 134, 159: 131, 145: 131, 146: 130, 154: 129, 158: 127, 153: 126, 162: 126, 151: 126, 149: 125, 150: 124, 156: 124, 117: 123, 155: 122, 115: 122, 169: 120, 147: 120, 165: 119, 160: 116, 164: 115, 161: 113, 114: 110, 168: 109, 157: 108, 166: 107, 167: 106, 170: 102, 175: 102, 172: 102, 182: 100, 179: 98, 174: 97, 176: 96, 177: 94, 116: 94, 171: 94, 191: 94, 173: 94, 112: 93, 163: 93, 180: 92, 187: 91, 186: 90, 195: 90, 183: 89, 109: 87, 185: 86, 107: 84, 188: 83, 184: 82, 199: 82, 201: 82, 110: 80, 190: 80, 113: 80, 111: 79, 178: 78, 194: 77, 198: 76, 181: 75, 209: 73, 189: 73, 203: 73, 106: 72, 207: 72, 193: 71, 192: 71, 202: 71, 196: 69, 212: 69, 205: 69, 215: 69, 217: 69, 213: 69, 108: 68, 226: 66, 105: 65, 222: 65, 206: 65, 210: 64, 208: 64, 197: 63, 200: 63, 240: 63, 233: 62, 256: 62, 204: 62, 96: 60, 244: 60, 228: 60, 99: 60, 232: 60, 78: 59, 211: 59, 238: 58, 225: 58, 221: 57, 220: 57, 236: 57, 214: 57, 56: 56, 63: 56, 219: 55, 278: 55, 84: 55, 59: 55, 104: 54, 68: 54, 249: 53, 230: 53, 216: 53, 262: 52, 102: 52, 229: 52, 237: 52, 81: 52, 255: 52, 218: 52, 250: 51, 50: 51, 245: 51, 91: 51, 254: 50, 223: 50, 263: 50, 247: 50, 74: 50, 241: 50, 60: 50, 100: 49, 73: 49, 224: 49, 234: 49, 90: 49, 260: 49, 246: 48, 248: 48, 76: 48, 52: 48, 243: 47, 57: 47, 88: 47, 103: 47, 70: 47, 259: 47, 267: 47, 53: 47, 95: 47, 61: 47, 227: 46, 257: 46, 54: 45, 277: 45, 101: 45, 44: 45, 69: 45, 85: 45, 86: 44, 231: 44, 55: 44, 75: 44, 77: 44, 239: 44, 270: 44, 98: 43, 252: 43, 268: 43, 92: 43, 272: 43, 51: 43, 279: 43, 71: 43, 82: 43, 67: 42, 87: 42, 64: 42, 62: 42, 285: 42, 89: 41, 313: 41, 301: 41, 47: 41, 276: 41, 300: 41, 58: 41, 251: 41, 242: 40, 307: 40, 273: 40, 83: 40, 297: 39, 275: 39, 93: 39, 48: 39, 65: 39, 261: 39, 269: 39, 258: 38, 302: 38, 322: 38, 287: 38, 97: 37, 329: 37, 72: 37, 286: 37, 358: 37, 49: 37, 264: 37, 79: 37, 253: 36, 45: 36, 94: 36, 66: 36, 280: 35, 46: 35, 293: 35, 299: 34, 265: 34, 318: 34, 304: 34, 331: 33, 295: 33, 266: 33, 289: 33, 43: 32, 303: 32, 281: 32, 314: 32, 315: 31, 306: 31, 292: 31, 294: 31, 340: 31, 290: 30, 317: 30, 305: 30, 367: 30, 349: 30, 326: 30, 346: 29, 328: 29, 80: 29, 362: 29, 324: 29, 282: 29, 321: 29, 333: 28, 338: 28, 378: 28, 332: 28, 377: 28, 311: 28, 283: 27, 359: 27, 345: 27, 325: 27, 308: 27, 319: 27, 274: 27, 334: 27, 320: 27, 356: 27, 271: 27, 235: 27, 374: 27, 310: 27, 337: 26, 339: 26, 288: 26, 312: 26, 372: 26, 357: 26, 379: 26, 347: 25, 323: 25, 387: 25, 309: 25, 371: 25, 370: 25, 42: 25, 398: 24, 348: 24, 336: 24, 407: 24, 363: 24, 343: 24, 284: 24, 330: 23, 365: 23, 434: 23, 408: 23, 424: 23, 335: 23, 298: 23, 376: 23, 373: 23, 40: 23, 342: 22, 291: 22, 382: 22, 296: 22, 384: 22, 354: 22, 386: 22, 351: 22, 451: 21, 355: 21, 327: 21, 414: 21, 366: 21, 422: 21, 423: 20, 352: 20, 369: 20, 394: 20, 41: 20, 39: 20, 385: 19, 409: 19, 383: 19, 438: 19, 37: 19, 364: 19, 388: 19, 442: 19, 445: 19, 460: 18, 461: 18, 417: 18, 350: 18, 380: 18, 470: 18, 368: 18, 428: 18, 399: 18, 353: 17, 420: 17, 435: 17, 316: 17, 415: 17, 396: 17, 381: 17, 432: 17, 341: 17, 429: 17, 389: 17, 404: 17, 34: 17, 344: 17, 447: 16, 410: 16, 413: 16, 493: 16, 449: 16, 392: 16, 421: 16, 361: 16, 360: 16, 450: 16, 464: 16, 405: 16, 495: 16, 523: 15, 481: 15, 400: 15, 473: 15, 416: 15, 375: 15, 443: 15, 469: 15, 426: 15, 482: 15, 535: 15, 430: 15, 412: 14, 431: 14, 454: 14, 463: 14, 452: 14, 485: 14, 501: 14, 479: 14, 507: 14, 425: 14, 462: 14, 403: 14, 476: 14, 401: 13, 508: 13, 439: 13, 570: 13, 524: 13, 457: 13, 36: 13, 402: 13, 491: 13, 437: 13, 478: 13, 514: 13, 440: 13, 497: 13, 587: 12, 515: 12, 468: 12, 397: 12, 489: 12, 561: 12, 418: 12, 496: 12, 518: 12, 406: 12, 455: 12, 517: 12, 411: 12, 494: 12, 391: 12, 395: 12, 486: 12, 458: 12, 531: 12, 433: 12, 446: 12, 466: 12, 541: 11, 597: 11, 617: 11, 504: 11, 506: 11, 487: 11, 38: 11, 503: 11, 500: 11, 456: 11, 492: 11, 459: 11, 393: 11, 609: 11, 642: 11, 519: 10, 549: 10, 505: 10, 512: 10, 502: 10, 444: 10, 453: 10, 538: 10, 641: 10, 569: 10, 525: 10, 467: 10, 35: 10, 475: 10, 484: 10, 560: 10, 499: 10, 474: 10, 465: 10, 593: 9, 584: 9, 448: 9, 30: 9, 589: 9, 590: 9, 477: 9, 436: 9, 555: 9, 419: 9, 557: 9, 516: 9, 591: 9, 620: 9, 596: 9, 441: 9, 542: 9, 547: 9, 572: 9, 558: 9, 592: 9, 633: 9, 480: 9, 551: 8, 553: 8, 715: 8, 546: 8, 708: 8, 510: 8, 656: 8, 490: 8, 530: 8, 537: 8, 678: 8, 626: 8, 427: 8, 536: 8, 585: 8, 582: 8, 534: 8, 539: 8, 552: 8, 608: 8, 27: 8, 488: 8, 532: 8, 594: 8, 603: 8, 566: 7, 545: 7, 627: 7, 521: 7, 650: 7, 544: 7, 567: 7, 1023: 7, 606: 7, 575: 7, 783: 7, 472: 7, 556: 7, 755: 7, 809: 7, 725: 7, 577: 7, 509: 7, 564: 7, 605: 7, 636: 7, 390: 7, 713: 7, 619: 7, 563: 7, 554: 7, 583: 7, 602: 7, 635: 7, 665: 7, 682: 7, 483: 7, 543: 7, 737: 7, 562: 7, 550: 7, 527: 7, 528: 7, 533: 7, 677: 7, 733: 7, 568: 7, 529: 7, 885: 7, 697: 6, 675: 6, 598: 6, 614: 6, 1012: 6, 634: 6, 625: 6, 723: 6, 807: 6, 652: 6, 637: 6, 645: 6, 673: 6, 663: 6, 513: 6, 630: 6, 699: 6, 644: 6, 612: 6, 687: 6, 1018: 6, 711: 6, 691: 6, 659: 6, 604: 6, 607: 6, 624: 6, 29: 6, 622: 6, 785: 6, 522: 6, 32: 6, 724: 6, 471: 6, 618: 6, 540: 6, 581: 5, 736: 5, 676: 5, 649: 5, 751: 5, 763: 5, 964: 5, 688: 5, 31: 5, 1005: 5, 722: 5, 646: 5, 983: 5, 759: 5, 812: 5, 993: 5, 565: 5, 600: 5, 526: 5, 685: 5, 761: 5, 803: 5, 629: 5, 638: 5, 792: 5, 511: 5, 768: 5, 683: 5, 700: 5, 694: 5, 520: 5, 669: 5, 653: 5, 758: 5, 1020: 5, 753: 5, 940: 5, 571: 5, 578: 5, 611: 5, 781: 5, 623: 5, 661: 5, 747: 5, 860: 4, 991: 4, 729: 4, 658: 4, 965: 4, 664: 4, 874: 4, 680: 4, 800: 4, 22: 4, 573: 4, 832: 4, 872: 4, 924: 4, 586: 4, 816: 4, 735: 4, 795: 4, 706: 4, 726: 4, 833: 4, 889: 4, 654: 4, 794: 4, 712: 4, 579: 4, 1017: 4, 628: 4, 1010: 4, 548: 4, 643: 4, 33: 4, 931: 4, 748: 4, 716: 4, 719: 4, 702: 4, 934: 4, 616: 4, 821: 4, 788: 4, 1028: 4, 672: 4, 732: 4, 666: 4, 829: 4, 1029: 4, 887: 4, 771: 4, 811: 4, 776: 4, 632: 4, 601: 4, 679: 4, 741: 4, 933: 4, 610: 4, 648: 4, 865: 4, 574: 4, 786: 3, 20: 3, 994: 3, 1032: 3, 588: 3, 746: 3, 969: 3, 823: 3, 815: 3, 996: 3, 613: 3, 631: 3, 640: 3, 720: 3, 709: 3, 621: 3, 958: 3, 822: 3, 864: 3, 883: 3, 655: 3, 651: 3, 750: 3, 909: 3, 1026: 3, 595: 3, 784: 3, 703: 3, 857: 3, 767: 3, 667: 3, 858: 3, 796: 3, 701: 3, 749: 3, 826: 3, 24: 3, 1056: 3, 793: 3, 718: 3, 868: 3, 847: 3, 843: 3, 717: 3, 789: 3, 804: 3, 599: 3, 791: 3, 1019: 3, 932: 3, 615: 3, 689: 3, 670: 3, 705: 3, 966: 3, 819: 3, 774: 3, 692: 3, 1014: 3, 662: 3, 1007: 3, 770: 3, 639: 3, 854: 3, 894: 3, 845: 3, 752: 3, 690: 3, 998: 3, 866: 3, 914: 3, 817: 3, 801: 3, 859: 3, 814: 3, 968: 3, 1013: 3, 799: 3, 989: 3, 830: 3, 714: 3, 1037: 2, 754: 2, 901: 2, 808: 2, 835: 2, 820: 2, 766: 2, 873: 2, 850: 2, 982: 2, 764: 2, 1025: 2, 917: 2, 1061: 2, 26: 2, 728: 2, 28: 2, 963: 2, 721: 2, 855: 2, 841: 2, 827: 2, 935: 2, 671: 2, 559: 2, 988: 2, 867: 2, 1048: 2, 727: 2, 876: 2, 912: 2, 888: 2, 12: 2, 987: 2, 1046: 2, 846: 2, 838: 2, 1040: 2, 704: 2, 881: 2, 696: 2, 1042: 2, 25: 2, 948: 2, 844: 2, 825: 2, 16: 2, 15: 2, 1039: 2, 980: 2, 907: 2, 974: 2, 927: 2, 790: 2, 990: 2, 17: 2, 837: 2, 745: 2, 949: 2, 849: 2, 1011: 2, 1004: 2, 782: 2, 986: 2, 668: 2, 19: 2, 765: 2, 686: 2, 950: 2, 953: 2, 710: 2, 851: 2, 962: 2, 580: 2, 760: 2, 1034: 2, 695: 2, 498: 2, 1033: 2, 871: 2, 1001: 2, 902: 2, 842: 2, 992: 2, 1003: 2, 762: 2, 862: 2, 693: 2, 1049: 2, 999: 2, 1022: 2, 834: 2, 1015: 2, 698: 2, 911: 2, 1021: 2, 772: 2, 684: 2, 806: 2, 739: 2, 944: 2, 1006: 2, 647: 2, 863: 2, 957: 2, 918: 2, 916: 2, 942: 2, 742: 2, 576: 2, 731: 2, 779: 2, 880: 2, 978: 2, 926: 2, 1853: 1, 1316: 1, 937: 1, 1341: 1, 905: 1, 1230: 1, 10: 1, 870: 1, 954: 1, 893: 1, 895: 1, 1085: 1, 777: 1, 1008: 1, 2514: 1, 921: 1, 947: 1, 1045: 1, 1088: 1, 985: 1, 904: 1, 977: 1, 813: 1, 797: 1, 1098: 1, 1016: 1, 910: 1, 1091: 1, 1240: 1, 906: 1, 1009: 1, 818: 1, 929: 1, 1555: 1, 1587: 1, 1188: 1, 1036: 1, 11: 1, 831: 1, 744: 1, 1079: 1, 878: 1, 1646: 1, 13: 1, 886: 1, 848: 1, 1392: 1, 952: 1, 972: 1, 913: 1, 1030: 1, 920: 1, 967: 1, 869: 1, 773: 1, 674: 1, 1027: 1, 1773: 1, 1425: 1, 1867: 1, 778: 1, 1120: 1, 1124: 1, 903: 1, 769: 1, 946: 1, 1113: 1, 757: 1, 922: 1, 923: 1, 884: 1, 879: 1, 995: 1, 897: 1, 805: 1, 734: 1, 943: 1, 984: 1, 730: 1, 971: 1, 1053: 1, 1278: 1, 707: 1, 1568: 1, 802: 1, 840: 1, 743: 1, 1422: 1, 1186: 1, 1052: 1, 919: 1, 1077: 1, 877: 1, 852: 1, 856: 1, 660: 1, 891: 1, 853: 1, 1317: 1, 657: 1, 900: 1, 681: 1, 915: 1, 780: 1, 1050: 1, 970: 1, 740: 1, 14: 1, 1130: 1, 1360: 1, 1044: 1, 0: 1})\n",
+      "The number of zero-length reviews : 1 \n",
+      "The maximum lenghth of reviews : 2514\n",
+      "# of revies after removing zero-length reviews 25000\n"
+     ]
+    }
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "\n",
+    "TO DO: Create padded sequences with the equal length, e.g., 100. You can choose the sequence length here. If the sequence length is larger than your choosen length, you will truncate it so that all sequences have the same length (after 0 padding for shorter sequences)."
+   ],
+   "metadata": {
+    "id": "nLPI4QohULG9",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "def padding_features(revie_to_indexs, seq_lenghth):\n",
+    "  features =torch.zeros( (len(review_to_indexs), seq_lenghth), dtype=int) \n",
+    "  for i, j in enumerate(review_to_indexs):\n",
+    "    features[i, -len(j) :] = torch.tensor(j)[:seq_length]\n",
+    "  return features \n",
+    "seq_length = 200\n",
+    "features = padding_features(review_to_indexs, seq_length)\n",
+    "print('feature shape is :', features.shape)\n",
+    "\n",
+    "\n",
+    "split_fraction =0.8\n",
+    "train_index = int(len(features)*0.8)\n",
+    "\n",
+    "train_x = features[: train_index]\n",
+    "test_x  = features[train_index:]\n",
+    "\n",
+    "train_labels =  torch.tensor( indexed_labels[:train_index] )\n",
+    "test_labels = torch.tensor( indexed_labels[train_index : ] )\n",
+    "print('train shape', train_x.shape, type(train_x),'\\n')\n",
+    "print('train label shape', train_labels.shape, type(train_labels), '\\n')\n",
+    "print('test shape', test_x.shape, type(test_x), '\\n')\n",
+    "print('test label shape', test_labels.shape,type(test_labels), '\\n')"
+   ],
+   "metadata": {
+    "id": "JEH5EnFzUOuV",
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "outputId": "01de73a8-6f06-4e87-9c57-5092618953b2",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 16,
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "feature shape is : torch.Size([25000, 200])\n",
+      "train shape torch.Size([20000, 200]) <class 'torch.Tensor'> \n",
+      "\n",
+      "train label shape torch.Size([20000]) <class 'torch.Tensor'> \n",
+      "\n",
+      "test shape torch.Size([5000, 200]) <class 'torch.Tensor'> \n",
+      "\n",
+      "test label shape torch.Size([5000]) <class 'torch.Tensor'> \n",
+      "\n"
+     ]
+    }
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "TO DO: Create your own dataset class definition (inherited from torch.utils.data.Dataset) and use DataLoader "
+   ],
+   "metadata": {
+    "id": "E2Z0OrM9UgU5",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "import torch\n",
+    "from torch.utils.data import Dataset, DataLoader\n",
+    "import os\n",
+    "\n",
+    "\n",
+    "class Dataset(Dataset):\n",
+    "    def __init__(self,features, indexed_labels):\n",
+    "        self.features = features\n",
+    "        self.indexed_labels = indexed_labels\n",
+    "\n",
+    "    def __len__(self):\n",
+    "        return len(self.features)\n",
+    "\n",
+    "    def __getitem__(self, idx):\n",
+    "      feature =self.features[idx]\n",
+    "      indexed_label = self.indexed_labels[idx]\n",
+    "      return feature, indexed_label\n",
+    "\n",
+    "batch_size =50\n",
+    "\n",
+    "train_data = Dataset(train_x, train_labels)\n",
+    "test_data = Dataset(test_x, test_labels)\n",
+    "\n",
+    "train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)\n",
+    "test_loader = DataLoader(test_data, shuffle=True, batch_size=batch_size)\n",
+    "\n"
+   ],
+   "metadata": {
+    "id": "euDlSwVGVOaY",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 17,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "TO DO: Create your own RNN model class definition (inherited from torch.nn.Module)"
+   ],
+   "metadata": {
+    "id": "AduMqtABVsox",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "import torch.nn as nn\n",
+    "\n",
+    "class ClassifierRNN(nn.Module):\n",
+    "    \n",
+    "    def __init__(self, vocab_size, output_size, embedding_dim, \n",
+    "                 hidden_dim, n_layers, device, drop_prob=0.5):\n",
+    "\n",
+    "        super(ClassifierRNN, self).__init__()\n",
+    "        self.device = device \n",
+    "        self.output_size = output_size\n",
+    "        self.n_layers = n_layers\n",
+    "        self.hidden_dim = hidden_dim\n",
+    "        self.embedding = nn.Embedding(vocab_size, embedding_dim)\n",
+    "        self.lstm = nn.LSTM(embedding_dim, hidden_dim, n_layers, dropout=drop_prob, batch_first=True)\n",
+    "        self.dropout = nn.Dropout(0.2)\n",
+    "        self.linear = nn.Linear(hidden_dim, output_size)\n",
+    "        self.sigmoid = nn.Sigmoid()\n",
+    "\n",
+    "    def forward(self, x, hidden):\n",
+    "        batch_size = x.size(0)\n",
+    "        embedings = self.embedding(x)\n",
+    "        lstm_out, hidden = self.lstm(embedings, hidden)\n",
+    "        lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)\n",
+    "        out = self.dropout(lstm_out)\n",
+    "        out = self.linear(out)\n",
+    "        out = self.sigmoid(out)\n",
+    "        out = out.view(batch_size, -1)\n",
+    "        out = out[:, -1] # get last batch of labels\n",
+    "\n",
+    "        return out, hidden\n",
+    "    \n",
+    "    \n",
+    "    def init_hidden(self, batch_size):\n",
+    "        weight = next(self.parameters()).data\n",
+    "        if self.device == 'cuda':\n",
+    "          hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().cuda(),\n",
+    "                   weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().cuda())\n",
+    "        else:\n",
+    "          hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).zero_(),\n",
+    "                   weight.new(self.n_layers, batch_size, self.hidden_dim).zero_())\n",
+    "        \n",
+    "        return hidden\n",
+    "        "
+   ],
+   "metadata": {
+    "id": "N75GM5nQVuKr",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 18,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "TO DO: Create your code for training the model"
+   ],
+   "metadata": {
+    "id": "e5JZNtMyWGNM",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "from pandas.core.indexes.range import RangeIndex\n",
+    "import tqdm.notebook as tqdm\n",
+    "\n",
+    "\n",
+    "vocab_size = len(token_to_index) + 1\n",
+    "output_size = 1\n",
+    "embedding_dim = 400\n",
+    "hidden_dim = 256\n",
+    "n_layers = 2\n",
+    "\n",
+    "rnn = ClassifierRNN(vocab_size, output_size, embedding_dim, hidden_dim, n_layers, device= device )\n",
+    "lr=0.001\n",
+    "\n",
+    "criterion = nn.BCELoss()\n",
+    "optimizer = torch.optim.Adam(net.parameters(), lr=lr)\n",
+    "\n",
+    "epochs = 1\n",
+    "\n",
+    "counter = 0\n",
+    "clip=5 # gradient clipping\n",
+    "\n",
+    "# move model to GPU, if available\n",
+    "if device == 'cuda' :\n",
+    "    rnn.cuda()\n",
+    "\n",
+    "rnn.train()\n",
+    "\n",
+    "for e in tqdm.tqdm(range(epochs)):\n",
+    "    h = rnn.init_hidden(batch_size)\n",
+    "    for inputs, labels in train_loader:\n",
+    "\n",
+    "        counter += 1\n",
+    "        if device == 'cuda':\n",
+    "            inputs = inputs.cuda()\n",
+    "            labels = labels.cuda()\n",
+    "        rnn.zero_grad()\n",
+    "        output, h = rnn(inputs, h)\n",
+    "        loss = criterion(output.squeeze(), labels.float())\n",
+    "        loss.backward(retain_graph=True)\n",
+    "        nn.utils.clip_grad_norm_(rnn.parameters(), clip)\n",
+    "        optimizer.step()\n",
+    "\n",
+    "        if counter % 50 == 0:\n",
+    "          print('{} th epoch'.format(e+1, epochs), '{}th step'.format(counter),\n",
+    "                  'the loss is {:.4f}'.format(loss.item()))"
+   ],
+   "metadata": {
+    "id": "2wepp6QrWLN1",
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 224
+    },
+    "outputId": "ae1f7c0e-8f5f-42b8-f5bb-c55c59d03cfc",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": 19,
+   "outputs": [
+    {
+     "ename": "ModuleNotFoundError",
+     "evalue": "No module named 'pandas'",
+     "output_type": "error",
+     "traceback": [
+      "\u001B[0;31m---------------------------------------------------------------------------\u001B[0m",
+      "\u001B[0;31mModuleNotFoundError\u001B[0m                       Traceback (most recent call last)",
+      "Input \u001B[0;32mIn [19]\u001B[0m, in \u001B[0;36m<cell line: 1>\u001B[0;34m()\u001B[0m\n\u001B[0;32m----> 1\u001B[0m \u001B[38;5;28;01mfrom\u001B[39;00m \u001B[38;5;21;01mpandas\u001B[39;00m\u001B[38;5;21;01m.\u001B[39;00m\u001B[38;5;21;01mcore\u001B[39;00m\u001B[38;5;21;01m.\u001B[39;00m\u001B[38;5;21;01mindexes\u001B[39;00m\u001B[38;5;21;01m.\u001B[39;00m\u001B[38;5;21;01mrange\u001B[39;00m \u001B[38;5;28;01mimport\u001B[39;00m RangeIndex\n\u001B[1;32m      2\u001B[0m \u001B[38;5;28;01mimport\u001B[39;00m \u001B[38;5;21;01mtqdm\u001B[39;00m\u001B[38;5;21;01m.\u001B[39;00m\u001B[38;5;21;01mnotebook\u001B[39;00m \u001B[38;5;28;01mas\u001B[39;00m \u001B[38;5;21;01mtqdm\u001B[39;00m\n\u001B[1;32m      5\u001B[0m vocab_size \u001B[38;5;241m=\u001B[39m \u001B[38;5;28mlen\u001B[39m(token_to_index) \u001B[38;5;241m+\u001B[39m \u001B[38;5;241m1\u001B[39m\n",
+      "\u001B[0;31mModuleNotFoundError\u001B[0m: No module named 'pandas'"
+     ]
+    }
+   ]
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "def predict(rnn, test_loader,device= device):\n",
+    "    rnn.eval()\n",
+    "    total_test = 0 \n",
+    "    loss =0\n",
+    "\n",
+    "    for inputs, labels in test_loader:\n",
+    "      total_test += len(inputs)\n",
+    "      batch_size = len(inputs)\n",
+    "      h = rnn.init_hidden(batch_size)\n",
+    "      if device == 'cuda':\n",
+    "        inputs = inputs.cuda()\n",
+    "        labels = labels.cuda()\n",
+    "      output, h = rnn(inputs, h)    \n",
+    "      pred = torch.round(output.squeeze())\n",
+    "      loss += torch.sum(torch.abs(pred-labels))\n",
+    "    average_accuracy = 1-(loss/total_test)\n",
+    "    print(f'average accuracy is {average_accuracy:.3f}')\n",
+    "\n",
+    "predict(rnn, test_loader)"
+   ],
+   "metadata": {
+    "id": "9tRGKqTNehxf",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "vocab_size =len(token_to_index) + 1 # +1 for zero padding + our word tokens\n",
+    "output_size = 1\n",
+    "embedding_dim = 400 \n",
+    "hidden_dim = 256\n",
+    "n_layers = 2\n",
+    "\n",
+    "net  = ClassifierRNN(vocab_size, output_size, embedding_dim, hidden_dim, n_layers, device= device )\n",
+    "\n",
+    "lr=0.001\n",
+    "\n",
+    "criterion = nn.BCELoss()\n",
+    "optimizer = torch.optim.Adam(net.parameters(), lr=lr)\n",
+    "\n",
+    "epochs = 1\n",
+    "\n",
+    "\n",
+    "if device == 'cuda' :\n",
+    "    rnn.cuda()\n",
+    "\n",
+    "\n",
+    "counter = 0\n",
+    "print_every = 100\n",
+    "clip=5 # gradient clipping\n",
+    "\n",
+    "# First checking if GPU is available\n",
+    "train_on_gpu=torch.cuda.is_available()\n",
+    "\n",
+    "if(train_on_gpu):\n",
+    "    print('Training on GPU.')\n",
+    "else:\n",
+    "    print('No GPU available, training on CPU.')\n",
+    "# move model to GPU, if available\n",
+    "if(train_on_gpu):\n",
+    "    net.cuda()\n",
+    "\n",
+    "net.train()\n",
+    "# train for some number of epochs\n",
+    "for e in range(epochs):\n",
+    "    # initialize hidden state\n",
+    "    h = net.init_hidden(batch_size)\n",
+    "\n",
+    "    # batch loop\n",
+    "    for inputs, labels in train_loader:\n",
+    "        counter += 1\n",
+    "\n",
+    "        if(train_on_gpu):\n",
+    "            inputs, labels = inputs.cuda(), labels.cuda()\n",
+    "\n",
+    "        # Creating new variables for the hidden state, otherwise\n",
+    "        # we'd backprop through the entire training history\n",
+    "        h = tuple([each.data for each in h])\n",
+    "\n",
+    "        # zero accumulated gradients\n",
+    "        net.zero_grad()\n",
+    "\n",
+    "        # get the output from the model\n",
+    "        output, h = net(inputs, h)\n",
+    "\n",
+    "        # calculate the loss and perform backprop\n",
+    "        loss = criterion(output.squeeze(), labels.float())\n",
+    "        loss.backward()\n",
+    "        # `clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.\n",
+    "        nn.utils.clip_grad_norm_(net.parameters(), clip)\n",
+    "        optimizer.step()\n",
+    "\n",
+    "        # loss stats\n",
+    "        if counter % print_every == 0:\n",
+    "            net.train()\n",
+    "            print(\"Epoch: {}/{}...\".format(e+1, epochs),\n",
+    "                  \"Step: {}...\".format(counter),\n",
+    "                  \"Loss: {:.6f}...\".format(loss.item()))"
+   ],
+   "metadata": {
+    "id": "jlf0b7Gld9bz",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "TO DO: Create your code for testing (evaluation on test set)"
+   ],
+   "metadata": {
+    "id": "iGFTnHGKWLr2",
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "def predict(rnn, test_loader,device= device):\n",
+    "    rnn.eval()\n",
+    "    total_test = 0 \n",
+    "    loss =0\n",
+    "\n",
+    "    for inputs, labels in test_loader:\n",
+    "      total_test += len(inputs)\n",
+    "      batch_size = len(inputs)\n",
+    "      h = rnn.init_hidden(batch_size)\n",
+    "      if device == 'cuda':\n",
+    "        inputs = inputs.cuda()\n",
+    "        labels = labels.cuda()\n",
+    "      output, h = rnn(inputs, h)    \n",
+    "      pred = torch.round(output.squeeze())\n",
+    "      loss += torch.sum(torch.abs(pred-labels))\n",
+    "    average_accuracy = 1-(loss/total_test)\n",
+    "    print(f'average accuracy is {average_accuracy:.3f}')\n",
+    "\n",
+    "predict(net, test_loader)"
+   ],
+   "metadata": {
+    "id": "2P9Nl4HJSFyt",
+    "pycharm": {
+     "name": "#%%\n"
+    }
+   },
+   "execution_count": null,
+   "outputs": []
+  }
+ ]
+}
